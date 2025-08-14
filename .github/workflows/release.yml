@@ -1,36 +1,107 @@
-name: Create Release
+name: 'Update Version, Tag, and Create Release'
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'New version number (e.g., v1.0.0)'
+        required: true
+        type: string
+      changelog_notes:
+        description: 'Changelog notes for this new version. Use "*" for list items.'
+        required: true
+        type: string
 
 permissions:
   contents: write
 
 jobs:
-  build-and-release:
-    name: Build and Release
+  cut-release:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Get version from tag
+      - name: Ensure files exist (first run safety)
         run: |
-          echo "VERSION=${GITHUB_REF_NAME}" >> $GITHUB_ENV
+          [ -f update.json ] || echo '{}' > update.json
+          [ -f changelog.md ] || touch changelog.md
 
-      - name: List files in the repository
-        run: ls -R
-        
-      - name: Zip module
-        run: (cd module && zip -r ../oneplus13t-fix-camera-${{ env.VERSION }}.zip .)
-        # => oneplus13t-fix-camera-v1.2.3.zip
+      - name: Calculate new versionCode
+        id: versioning
+        run: |
+          current_code=$(grep '^versionCode=' module/module.prop | cut -d'=' -f2)
+          echo "Current versionCode: $current_code"
+          new_code=$((current_code + 1))
+          echo "new_code=$new_code" >> "$GITHUB_OUTPUT"
 
-      - name: Create Release
+      - name: Update module.prop
+        run: |
+          sed -i "s/^version=.*/version=${{ github.event.inputs.version }}/" module/module.prop
+          sed -i "s/^versionCode=.*/versionCode=${{ steps.versioning.outputs.new_code }}/" module/module.prop
+
+      - name: Update update.json (points to the release asset we'll upload)
+        run: |
+          ver="${{ github.event.inputs.version }}"   # e.g., v1.2.3
+          zip_url="https://github.com/kinginu/oneplus13t-fix-camera/releases/download/${ver}/oneplus13t-fix-camera-${ver}.zip"
+          jq \
+            --arg ver "$ver" \
+            --arg code "${{ steps.versioning.outputs.new_code }}" \
+            --arg url "$zip_url" \
+            '.version = $ver | .versionCode = ($code | tonumber) | .zipUrl = $url' \
+            update.json > tmp.json && mv tmp.json update.json
+
+      - name: Update changelog.md (prepend)
+        run: |
+          {
+            echo "## ${{ github.event.inputs.version }} ($(date +'%Y-%m-%d'))"
+            echo
+            # keep raw notes, allow "*" bullets
+            cat <<'EOF'
+${{ github.event.inputs.changelog_notes }}
+EOF
+            echo
+          } > new_entry.txt
+          cat new_entry.txt changelog.md > temp_changelog.md && mv temp_changelog.md changelog.md
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add module/module.prop update.json changelog.md
+          git commit -m "Chore: Bump version to ${{ github.event.inputs.version }}" || true
+          git push
+
+      - name: Create and push tag
+        run: |
+          git tag ${{ github.event.inputs.version }}          # e.g., v1.2.3
+          git push origin ${{ github.event.inputs.version }}
+
+      - name: Build zip from the tagged sources
+        run: |
+          ver="${{ github.event.inputs.version }}"
+          (cd module && zip -r "../oneplus13t-fix-camera-${ver}.zip" .)
+        # => oneplus13t-fix-camera-vX.Y.Z.zip
+
+      - name: Prepare release body
+        run: |
+          {
+            echo "## ${{ github.event.inputs.version }} ($(date +'%Y-%m-%d'))"
+            echo
+            cat <<'EOF'
+${{ github.event.inputs.changelog_notes }}
+EOF
+          } > RELEASE_BODY.md
+
+      - name: Create GitHub Release and upload asset
         uses: softprops/action-gh-release@v2
         with:
-          files: oneplus13t-fix-camera-${{ env.VERSION }}.zip
+          tag_name: ${{ github.event.inputs.version }}
+          files: oneplus13t-fix-camera-${{ github.event.inputs.version }}.zip
+          body_path: RELEASE_BODY.md
           fail_on_unmatched_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
