@@ -1,3 +1,7 @@
+## v1.0.9 (2025-08-14)
+
+* fix workflow
+
 ## v1.0.8 (2025-08-14)
 
 * updated odm files from COS 15.0.0.500
