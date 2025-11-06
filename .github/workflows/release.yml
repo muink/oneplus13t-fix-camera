@@ -23,6 +23,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Install odm
+        shell: bash
+        run: |
+          # Install odm
+          bash module/odm.sh && rm -f module/odm.sh || exit $?
+
       - name: Ensure files exist (first run safety)
         run: |
           [ -f update.json ] || echo '{}' > update.json
@@ -76,12 +82,6 @@ jobs:
         run: |
           git tag ${{ github.event.inputs.version }}          # e.g., v1.2.3
           git push origin ${{ github.event.inputs.version }}
-
-      - name: Install odm
-        shell: bash
-        run: |
-          # Install odm
-          bash module/odm.sh && rm -f module/odm.sh || exit $?
 
       - name: Build zip from the tagged sources
         run: |
