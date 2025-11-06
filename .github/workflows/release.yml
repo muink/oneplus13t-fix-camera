@@ -22,8 +22,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Ensure files exist (first run safety)
         run: |
@@ -46,7 +44,7 @@ jobs:
       - name: Update update.json (points to the release asset we'll upload)
         run: |
           ver="${{ github.event.inputs.version }}"   # e.g., v1.2.3
-          zip_url="https://github.com/kinginu/oneplus13t-fix-camera/releases/download/${ver}/oneplus13t-fix-camera-${ver}.zip"
+          zip_url="https://github.com/muink/oneplus13t-fix-camera/releases/download/${ver}/oneplus13t-fix-camera-${ver}.zip"
           jq \
             --arg ver "$ver" \
             --arg code "${{ steps.versioning.outputs.new_code }}" \
@@ -65,7 +63,7 @@ jobs:
             echo
           } > new_entry.txt
           cat new_entry.txt changelog.md > temp_changelog.md && mv temp_changelog.md changelog.md
-    
+
       - name: Commit and push changes
         run: |
           git config --global user.name 'github-actions[bot]'
@@ -78,6 +76,12 @@ jobs:
         run: |
           git tag ${{ github.event.inputs.version }}          # e.g., v1.2.3
           git push origin ${{ github.event.inputs.version }}
+
+      - name: Install odm
+        shell: bash
+        run: |
+          # Install odm
+          bash module/odm.sh && rm -f module/odm.sh || exit $?
 
       - name: Build zip from the tagged sources
         run: |
