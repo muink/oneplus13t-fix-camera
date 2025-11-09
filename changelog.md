@@ -1,3 +1,7 @@
+## 16.0.2025.11.06 (2025-11-09)
+
+* update odm files to ColorOS 16.0.0.213
+
 ## v1.0.9 (2025-08-14)
 
 * fix workflow
