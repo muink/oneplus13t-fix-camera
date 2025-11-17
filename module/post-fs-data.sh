@@ -41,17 +41,12 @@ mount --bind $MODDIR/odm/lib64/vendor.oplus.hardware.eid-V1-ndk.so /odm/lib64/ve
 # Mounting /odm/lib64/camera/
 mount --bind $MODDIR/odm/lib64/camera /odm/lib64/camera
 
-# Mounting /odm/lib64/hw/
-mount --bind $MODDIR/odm/lib64/hw/camera.oemlayer.so /odm/lib64/hw/camera.oemlayer.so
-
 
 # Changing SELinux context
 chcon -R u:object_r:vendor_configs_file:s0 /odm/etc/camera
 chcon -R u:object_r:vendor_file:s0 /odm/lib64/camera
 chcon -R u:object_r:vendor_configs_file:s0 /odm/etc/power_profile
 chcon -R u:object_r:vendor_configs_file:s0 /odm/firmware/fastchg
-
-chcon u:object_r:vendor_file:s0 /odm/lib64/hw/camera.oemlayer.so
 
 # chcon u:object_r:vendor_file:s0 /odm/lib64/libOPAlgoCamFaceRestore.so
 chcon u:object_r:vendor_file:s0 /odm/lib64/vendor.oplus.hardware.esim-V1-ndk.so
