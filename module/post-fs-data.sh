@@ -52,8 +52,6 @@ chcon -R u:object_r:vendor_configs_file:s0 /odm/firmware/fastchg
 chcon u:object_r:vendor_file:s0 /odm/lib64/vendor.oplus.hardware.esim-V1-ndk.so
 
 # Temporary folder for substitution
-TMPDIR=/data/adb/tmp/empty_dir
-mkdir -p $TMPDIR
 
 
 # Removing files
