@@ -1,7 +1,7 @@
 id=oneplus13t-fix-camera
 name=Fixes camera for OnePlus 13T
-version=v16.0.2025.11.17
-versionCode=13
+version=v16.0.2025.12.20
+versionCode=14
 author=kinginu (modified by Anya Lin)
 description=Fix camera for OnePlus 13T on OxygenOS 16.
 updateJson=https://raw.githubusercontent.com/muink/oneplus13t-fix-camera/main/update.json
