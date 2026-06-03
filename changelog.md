@@ -1,3 +1,7 @@
+## v16.0.2026.06.03 (2026-06-03)
+
+* update odm files to ColorOS 16.0.7.200
+
 ## v16.0.2026.03.17 (2026-03-17)
 
 * update odm files to ColorOS 16.0.5.701
