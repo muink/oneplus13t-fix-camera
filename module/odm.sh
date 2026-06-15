@@ -2,8 +2,8 @@
 
 CURDIR="$(cd "$(dirname $0)"; pwd)"
 
-VERSION=16.0.7.200
-MD5SUM=f50cc865503b4dacacd822421ae779c9
+VERSION=16.0.8.300
+MD5SUM=f467c7f2d4673e073ea80c6cc16ef6a0
 
 curl -o "$CURDIR/odm.tar.gz" -L https://raw.githubusercontent.com/muink/oneplus13t-fix-camera/refs/heads/bin/odm/${VERSION}/odm.tar.gz
 echo "Download completed."
