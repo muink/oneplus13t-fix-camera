@@ -4,7 +4,11 @@ MODPATH=$MODDIR
 
 
 # Setting access permissions
-set_perm_recursive $MODPATH 0 0 0755 0644
+# (set_perm_recursive is an installer-only function, undefined in boot scripts)
+chown -R 0:0 $MODPATH
+find $MODPATH -type d -exec chmod 0755 {} +
+find $MODPATH -type f -exec chmod 0644 {} +
+chmod 0755 $MODPATH/odm/bin/hw/vendor.oplus.hardware.eid@1.0-service
 
 
 # Mounting /odm/etc/camera/
@@ -32,7 +36,11 @@ mount --bind $MODDIR/odm/firmware/fastchg /odm/firmware/fastchg
 # mount --bind $MODDIR/odm/lib/
 
 # Mounting /odm/bin/hw
-mount --bind $MODDIR/odm/bin/hw/vendor.oplus.hardware.eid@1.0-service /odm/bin/hw/vendor.oplus.hardware.esim@1.0-service
+# Capture the original esim service context before it is hidden by the mount,
+# so init can still exec the replacement binary in the expected domain
+ESIM_BIN=/odm/bin/hw/vendor.oplus.hardware.esim@1.0-service
+ESIM_CTX=$(ls -Zd $ESIM_BIN 2>/dev/null | grep -o 'u:object_r:[^ ]*')
+mount --bind $MODDIR/odm/bin/hw/vendor.oplus.hardware.eid@1.0-service $ESIM_BIN
 
 # Mounting /odm/lib64
 # mount --bind $MODDIR/odm/lib64/libOPAlgoCamFaceRestore.so /odm/lib64/libOPAlgoCamFaceRestore.so
@@ -50,6 +58,8 @@ chcon -R u:object_r:vendor_configs_file:s0 /odm/firmware/fastchg
 
 # chcon u:object_r:vendor_file:s0 /odm/lib64/libOPAlgoCamFaceRestore.so
 chcon u:object_r:vendor_file:s0 /odm/lib64/vendor.oplus.hardware.esim-V1-ndk.so
+
+chcon ${ESIM_CTX:-u:object_r:vendor_file:s0} $ESIM_BIN
 
 # Temporary folder for substitution
 
